@@ -1,5 +1,5 @@
-from companies.services.materials_statistic.validator import QueryParamsValidatorService
+from companies.services.materials_statistic.validator import DateValidatorService
 
 __all__ = [
-    "QueryParamsValidatorService",
+    "DateValidatorService",
 ]

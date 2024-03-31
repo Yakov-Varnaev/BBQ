@@ -16,7 +16,7 @@ from companies.api.serializers import (
     PointSerializer,
 )
 from companies.models import Material, Point
-from companies.services import EmployeeCreator, QueryParamsValidatorService
+from companies.services import DateValidatorService, EmployeeCreator
 
 
 @extend_schema(tags=["points"])
@@ -48,7 +48,7 @@ class MaterialsStatisticViewSet(ModelViewSet):
     permission_classes = [IsCompanyOwner]
 
     def get_queryset(self) -> QuerySet[Material]:
-        QueryParamsValidatorService(self.request)()
+        DateValidatorService(self.request)()
         return Material.objects.statistic(
             self.kwargs["point_pk"],
             self.request.query_params.get("date_from"),

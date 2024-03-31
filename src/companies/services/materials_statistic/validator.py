@@ -9,7 +9,7 @@ from app.services import BaseService
 
 
 @dataclass
-class QueryParamsValidatorService(BaseService):
+class DateValidatorService(BaseService):
     request: Request
 
     def valide_date_query_params(self) -> None:
@@ -24,7 +24,7 @@ class QueryParamsValidatorService(BaseService):
                 date_from = datetime.strptime(date_from_str, date_format).date()
             if date_to_str:
                 date_to = datetime.strptime(date_to_str, date_format).date()
-            if date_from >= date_to:
+            if date_from_str and date_to_str and date_from >= date_to:
                 raise ValidationError("date_from must be less than the date_to.")
         except (TypeError, ValueError):
             raise ValidationError("Invalid date format.")
