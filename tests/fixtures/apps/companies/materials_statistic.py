@@ -16,7 +16,7 @@ def material_date_query_params() -> dict[str, str]:
 
 @pytest.fixture
 @freeze_time("2000-01-01 10:23:40")
-def point_with_consumable_materials(factory: FixtureFactory, procedure: Procedure) -> Point:
+def point_with_materials_statistic(factory: FixtureFactory, procedure: Procedure) -> Point:
     now = timezone.now()
     point = procedure.department.point
     stock_materials = []

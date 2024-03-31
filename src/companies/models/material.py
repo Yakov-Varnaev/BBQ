@@ -22,7 +22,7 @@ class MaterialType(DefaultModel):
 
 
 class MaterialQuerySet(QuerySet):
-    def point(self, company_id: int, point_id: int, query_params: dict) -> "MaterialQuerySet":
+    def statistic(self, company_id: int, point_id: int, query_params: dict) -> "MaterialQuerySet":
         date_from = query_params.get("date_from")
         date_to = query_params.get("date_to")
         q_date_from = Q(date__gte=date_from) if date_from else Q()

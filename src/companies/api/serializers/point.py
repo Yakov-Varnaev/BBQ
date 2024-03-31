@@ -21,7 +21,7 @@ class PointCreateSerializer(PointSerializer):
         pass
 
 
-class ConsumableMateriaSerializer(MaterialSerializer):
+class MaterialsStatisticSerializer(MaterialSerializer):
     stocks = serializers.ListField(child=serializers.JSONField())
     usage = serializers.ListField(child=serializers.JSONField())
 

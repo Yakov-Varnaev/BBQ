@@ -8,10 +8,6 @@ from tests.fixtures.apps.companies.company import (
     company_owner,
     company_pk,
 )
-from tests.fixtures.apps.companies.consumable_material import (
-    material_date_query_params,
-    point_with_consumable_materials,
-)
 from tests.fixtures.apps.companies.department import (
     category,
     category_data,
@@ -36,6 +32,7 @@ from tests.fixtures.apps.companies.employee import (
     master_procedure_reverse_kwargs,
 )
 from tests.fixtures.apps.companies.fields import lowercase_char_field
+from tests.fixtures.apps.companies.materials_statistic import material_date_query_params, point_with_materials_statistic
 from tests.fixtures.apps.companies.point import company_point, company_point_data, company_point_pk
 from tests.fixtures.apps.companies.stock import (
     material,
@@ -79,7 +76,7 @@ __all__ = [
     "material_date_query_params",
     "material_type",
     "material_type_data",
-    "point_with_consumable_materials",
+    "point_with_materials_statistic",
     "procedure",
     "procedure_data",
     "procedure_reverse_kwargs",

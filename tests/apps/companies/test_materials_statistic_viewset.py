@@ -8,56 +8,56 @@ from django.utils import timezone
 
 from app.testing import StatusApiClient
 from app.types import RestPageAssertion
-from companies.api.serializers import ConsumableMateriaSerializer
+from companies.api.serializers import MaterialsStatisticSerializer
 from companies.models import Material, Point, StockMaterial
 from purchases.models import UsedMaterial
 
 pytestmark = [pytest.mark.django_db]
 
 
-def test_point_non_managing_staff_cannot_read_materials(
+def test_point_non_managing_staff_cannot_read_materials_statistic(
     as_point_non_managing_staff: StatusApiClient,
-    point_with_consumable_materials: Point,
+    point_with_materials_statistic: Point,
 ):
     as_point_non_managing_staff.get(  # type: ignore[no-untyped-call]
         reverse(
-            "api_v1:companies:consumable-material-list",
+            "api_v1:companies:materials-statistic-list",
             kwargs={
-                "company_pk": point_with_consumable_materials.company.id,
-                "point_pk": point_with_consumable_materials.id,
+                "company_pk": point_with_materials_statistic.company.id,
+                "point_pk": point_with_materials_statistic.id,
             },
         ),
         expected_status=as_point_non_managing_staff.expected_status,
     )
 
 
-def test_point_managing_staff_can_read_materials(
+def test_point_managing_staff_can_read_materials_statistic(
     as_point_managing_staff: StatusApiClient,
-    point_with_consumable_materials: Point,
+    point_with_materials_statistic: Point,
 ):
     as_point_managing_staff.get(  # type: ignore[no-untyped-call]
         reverse(
-            "api_v1:companies:consumable-material-list",
+            "api_v1:companies:materials-statistic-list",
             kwargs={
-                "company_pk": point_with_consumable_materials.company.id,
-                "point_pk": point_with_consumable_materials.id,
+                "company_pk": point_with_materials_statistic.company.id,
+                "point_pk": point_with_materials_statistic.id,
             },
         ),
     )
 
 
-def test_point_managing_staff_cannot_read_materials_with_invalid_query_params(
+def test_point_managing_staff_cannot_read_materials_statistic_with_invalid_query_params(
     as_point_managing_staff: StatusApiClient,
-    point_with_consumable_materials: Point,
+    point_with_materials_statistic: Point,
     material_date_query_params: dict[str, str],
 ):
     material_date_query_params["date_to"] = "2222"
     as_point_managing_staff.get(  # type: ignore[no-untyped-call]
         reverse(
-            "api_v1:companies:consumable-material-list",
+            "api_v1:companies:materials-statistic-list",
             kwargs={
-                "company_pk": point_with_consumable_materials.company.id,
-                "point_pk": point_with_consumable_materials.id,
+                "company_pk": point_with_materials_statistic.company.id,
+                "point_pk": point_with_materials_statistic.id,
             },
         ),
         expected_status=status.HTTP_400_BAD_REQUEST,
@@ -65,53 +65,53 @@ def test_point_managing_staff_cannot_read_materials_with_invalid_query_params(
     )
 
 
-def test_cosumable_materials_list(
+def test_materials_statistic_list(
     as_point_managing_staff: StatusApiClient,
-    point_with_consumable_materials: Point,
+    point_with_materials_statistic: Point,
     assert_rest_page: RestPageAssertion,
 ):
-    cosumable_materials = Material.objects.point(
-        point_with_consumable_materials.company.id,
-        point_with_consumable_materials.id,
+    materials_statistic = Material.objects.statistic(
+        point_with_materials_statistic.company.id,
+        point_with_materials_statistic.id,
         {},
     )
     response = as_point_managing_staff.get(  # type: ignore[no-untyped-call]
         reverse(
-            "api_v1:companies:consumable-material-list",
+            "api_v1:companies:materials-statistic-list",
             kwargs={
-                "company_pk": point_with_consumable_materials.company.id,
-                "point_pk": point_with_consumable_materials.id,
+                "company_pk": point_with_materials_statistic.company.id,
+                "point_pk": point_with_materials_statistic.id,
             },
         ),
     )
-    assert_rest_page(response, cosumable_materials, ConsumableMateriaSerializer)
+    assert_rest_page(response, materials_statistic, MaterialsStatisticSerializer)
 
 
-def test_cosumable_materials_detail(
+def test_materials_statistic_detail(
     as_point_managing_staff: StatusApiClient,
-    point_with_consumable_materials: Point,
+    point_with_materials_statistic: Point,
 ):
-    cosumable_material = Material.objects.point(
-        point_with_consumable_materials.company.id,
-        point_with_consumable_materials.id,
+    materials_statistic = Material.objects.statistic(
+        point_with_materials_statistic.company.id,
+        point_with_materials_statistic.id,
         {},
     ).first()
     response = as_point_managing_staff.get(  # type: ignore[no-untyped-call]
         reverse(
-            "api_v1:companies:consumable-material-detail",
+            "api_v1:companies:materials-statistic-detail",
             kwargs={
-                "company_pk": point_with_consumable_materials.company.id,
-                "point_pk": point_with_consumable_materials.id,
-                "pk": cosumable_material.id,  # type: ignore[union-attr]
+                "company_pk": point_with_materials_statistic.company.id,
+                "point_pk": point_with_materials_statistic.id,
+                "pk": materials_statistic.id,  # type: ignore[union-attr]
             },
         ),
     )
-    assert response == ConsumableMateriaSerializer(cosumable_material).data
+    assert response == MaterialsStatisticSerializer(materials_statistic).data
 
 
-def test_consumable_materials_usage_and_stocks_sort_by_date(
+def test_materials_statistic_usage_and_stocks_sort_by_date(
     as_point_managing_staff: StatusApiClient,
-    point_with_consumable_materials: Point,
+    point_with_materials_statistic: Point,
 ):
     material = Material.objects.first()
 
@@ -119,10 +119,10 @@ def test_consumable_materials_usage_and_stocks_sort_by_date(
 
     response = as_point_managing_staff.get(  # type: ignore[no-untyped-call]
         reverse(
-            "api_v1:companies:consumable-material-detail",
+            "api_v1:companies:materials-statistic-detail",
             kwargs={
-                "company_pk": point_with_consumable_materials.company.id,
-                "point_pk": point_with_consumable_materials.id,
+                "company_pk": point_with_materials_statistic.company.id,
+                "point_pk": point_with_materials_statistic.id,
                 "pk": material.id,
             },
         ),
@@ -132,9 +132,9 @@ def test_consumable_materials_usage_and_stocks_sort_by_date(
         assert all(elem1["date"] < elem2["date"] for elem1, elem2 in zip(movement, movement[1:]))
 
 
-def test_consumable_materials_usage_and_stocks_filter_by_date(
+def test_materials_statistic_usage_and_stocks_filter_by_date(
     as_point_managing_staff: StatusApiClient,
-    point_with_consumable_materials: Point,
+    point_with_materials_statistic: Point,
     material_date_query_params: dict[str, str],
 ):
     def get_date(date: str) -> datetime:
@@ -146,10 +146,10 @@ def test_consumable_materials_usage_and_stocks_filter_by_date(
     params = material_date_query_params
     response = as_point_managing_staff.get(  # type: ignore[no-untyped-call]
         reverse(
-            "api_v1:companies:consumable-material-detail",
+            "api_v1:companies:materials-statistic-detail",
             kwargs={
-                "company_pk": point_with_consumable_materials.company.id,
-                "point_pk": point_with_consumable_materials.id,
+                "company_pk": point_with_materials_statistic.company.id,
+                "point_pk": point_with_materials_statistic.id,
                 "pk": material.id,
             },
         ),
@@ -162,19 +162,19 @@ def test_consumable_materials_usage_and_stocks_filter_by_date(
         )
 
 
-def test_consumable_materials_amount(
+def test_materials_statistic_amount(
     as_point_managing_staff: StatusApiClient,
-    point_with_consumable_materials: Point,
+    point_with_materials_statistic: Point,
 ):
     material = Material.objects.first()
 
     assert material
 
     url = reverse(
-        "api_v1:companies:consumable-material-detail",
+        "api_v1:companies:materials-statistic-detail",
         kwargs={
-            "company_pk": point_with_consumable_materials.company.id,
-            "point_pk": point_with_consumable_materials.id,
+            "company_pk": point_with_materials_statistic.company.id,
+            "point_pk": point_with_materials_statistic.id,
             "pk": material.id,
         },
     )
@@ -190,19 +190,19 @@ def test_consumable_materials_amount(
     assert int(response["stocks"][0]["amount"]) - stock_material.quantity == int(new_response["stocks"][0]["amount"])
 
 
-def test_consumable_materials_usage_amount(
+def test_materials_statistic_usage_amount(
     as_point_managing_staff: StatusApiClient,
-    point_with_consumable_materials: Point,
+    point_with_materials_statistic: Point,
 ):
     material = Material.objects.first()
 
     assert material
 
     url = reverse(
-        "api_v1:companies:consumable-material-detail",
+        "api_v1:companies:materials-statistic-detail",
         kwargs={
-            "company_pk": point_with_consumable_materials.company.id,
-            "point_pk": point_with_consumable_materials.id,
+            "company_pk": point_with_materials_statistic.company.id,
+            "point_pk": point_with_materials_statistic.id,
             "pk": material.id,
         },
     )

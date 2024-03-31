@@ -11,8 +11,8 @@ from django.db.models import QuerySet
 from app.api.permissions import IsCompanyOwner, IsCompanyOwnerOrReadOnly
 from companies.api.filters import MaterialDataFilterForm
 from companies.api.serializers import (
-    ConsumableMateriaSerializer,
     EmployeeSerializer,
+    MaterialsStatisticSerializer,
     PointCreateSerializer,
     PointSerializer,
 )
@@ -43,15 +43,15 @@ class PointViewSet(ModelViewSet):
         return Response(EmployeeSerializer(employee).data)
 
 
-class ConsumableMaterialViewSet(ModelViewSet):
+class MaterialsStatisticViewSet(ModelViewSet):
     http_method_names = ["get"]
-    serializer_class = ConsumableMateriaSerializer
+    serializer_class = MaterialsStatisticSerializer
     permission_classes = [IsCompanyOwner]
     filter_form = MaterialDataFilterForm
 
     def get_queryset(self) -> QuerySet[Material]:
         self.filter_form(self.request.GET).is_valid(self.request.query_params)
-        return Material.objects.point(
+        return Material.objects.statistic(
             self.kwargs["company_pk"],
             self.kwargs["point_pk"],
             self.request.query_params,
