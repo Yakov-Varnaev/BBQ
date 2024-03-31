@@ -4,6 +4,7 @@ from datetime import datetime
 from freezegun import freeze_time
 from rest_framework import status
 
+from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils import timezone
 
@@ -47,17 +48,10 @@ def test_point_managing_staff_can_read_materials_statistic(
     )
 
 
-@pytest.mark.parametrize(
-    "date_query_params",
-    [
-        {"date_from": "2000-01-01", "date_to": "2222"},
-        # {"date_from": "2222-01-01", "date_to": "2002-01-01"},
-    ],
-)
 def test_point_managing_staff_cannot_read_materials_statistic_with_invalid_query_params(
     as_point_managing_staff: StatusApiClient,
     point_with_materials_statistic: Point,
-    date_query_params: dict[str, str],
+    invalide_material_date_query_params: dict[str, str],
 ):
     as_point_managing_staff.get(  # type: ignore[no-untyped-call]
         reverse(
@@ -68,7 +62,7 @@ def test_point_managing_staff_cannot_read_materials_statistic_with_invalid_query
             },
         ),
         expected_status=status.HTTP_400_BAD_REQUEST,
-        data=date_query_params,
+        data=invalide_material_date_query_params,
     )
 
 
@@ -78,7 +72,9 @@ def test_materials_statistic_list(
     assert_rest_page: RestPageAssertion,
     material_date_query_params: dict[str, str],
 ):
-    materials_statistic = Material.objects.statistic(point_with_materials_statistic.id, **material_date_query_params)
+    materials_statistic: QuerySet[Material] = Material.objects.statistic(
+        point_with_materials_statistic.id, **material_date_query_params
+    )
     response = as_point_managing_staff.get(  # type: ignore[no-untyped-call]
         reverse(
             "api_v1:companies:materials-statistic-list",
@@ -97,14 +93,14 @@ def test_materials_statistic_detail(
     point_with_materials_statistic: Point,
     material_date_query_params: dict[str, str],
 ):
-    material = Material.objects.statistic(point_with_materials_statistic.id, **material_date_query_params).first()
+    material = Material.objects.statistic(point_with_materials_statistic.id, **material_date_query_params).first()  # type: ignore[attr-defined]
     response = as_point_managing_staff.get(  # type: ignore[no-untyped-call]
         reverse(
             "api_v1:companies:materials-statistic-detail",
             kwargs={
                 "company_pk": point_with_materials_statistic.company.id,
                 "point_pk": point_with_materials_statistic.id,
-                "pk": material.id,  # type: ignore[union-attr]
+                "pk": material.id,
             },
         ),
         data=material_date_query_params,
@@ -117,7 +113,7 @@ def test_materials_statistic_usage_and_stocks_sort_by_date(
     point_with_materials_statistic: Point,
     material_date_query_params: dict[str, str],
 ):
-    material = Material.objects.statistic(point_with_materials_statistic.id, **material_date_query_params).first()
+    material = Material.objects.statistic(point_with_materials_statistic.id, **material_date_query_params).first()  # type: ignore[attr-defined]
 
     assert material
 
@@ -145,7 +141,7 @@ def test_materials_statistic_usage_and_stocks_filter_by_date(
         return datetime.strptime(date, "%Y-%m-%d")
 
     params = material_date_query_params
-    material = Material.objects.statistic(point_with_materials_statistic.id, **params).first()
+    material = Material.objects.statistic(point_with_materials_statistic.id, **params).first()  # type: ignore[attr-defined]
 
     assert material
 
@@ -173,7 +169,7 @@ def test_materials_statistic_amount(
     material_date_query_params: dict[str, str],
 ):
     material_date_query_params["date_to"] = "2022-01-01"
-    material = Material.objects.statistic(point_with_materials_statistic.id, **material_date_query_params).first()
+    material = Material.objects.statistic(point_with_materials_statistic.id, **material_date_query_params).first()  # type: ignore[attr-defined]
 
     assert material
 
@@ -204,7 +200,7 @@ def test_materials_statistic_usage_amount(
     material_date_query_params: dict[str, str],
 ):
     material_date_query_params["date_to"] = "2022-01-01"
-    material = Material.objects.statistic(point_with_materials_statistic.id, **material_date_query_params).first()
+    material = Material.objects.statistic(point_with_materials_statistic.id, **material_date_query_params).first()  # type: ignore[attr-defined]
 
     assert material
 

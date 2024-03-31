@@ -32,7 +32,11 @@ from tests.fixtures.apps.companies.employee import (
     master_procedure_reverse_kwargs,
 )
 from tests.fixtures.apps.companies.fields import lowercase_char_field
-from tests.fixtures.apps.companies.materials_statistic import material_date_query_params, point_with_materials_statistic
+from tests.fixtures.apps.companies.materials_statistic import (
+    invalide_material_date_query_params,
+    material_date_query_params,
+    point_with_materials_statistic,
+)
 from tests.fixtures.apps.companies.point import company_point, company_point_data, company_point_pk
 from tests.fixtures.apps.companies.stock import (
     material,
@@ -68,6 +72,7 @@ __all__ = [
     "employee_with_duplicating_department",
     "employee_with_non_existing_department",
     "employee_with_non_existing_user",
+    "invalide_material_date_query_params",
     "lowercase_char_field",
     "master_procedure",
     "master_procedure_data",

@@ -14,6 +14,17 @@ def material_date_query_params() -> dict[str, str]:
     return {"date_from": "2000-01-01", "date_to": "2002-01-01"}
 
 
+@pytest.fixture(
+    params=[
+        {"date_from": "2000-01-01", "date_to": "2222"},
+        {"date_from": "2222-01-01", "date_to": "2002-01-01"},
+        {"date_from": "2001-01-01", "date_to": "2001-01-01"},
+    ]
+)
+def invalide_material_date_query_params(request: pytest.FixtureRequest) -> dict[str, str]:
+    return request.param
+
+
 @pytest.fixture
 @freeze_time("2000-01-01 10:23:40")
 def point_with_materials_statistic(factory: FixtureFactory, procedure: Procedure) -> Point:

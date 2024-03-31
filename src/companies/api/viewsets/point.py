@@ -9,7 +9,6 @@ from rest_framework.viewsets import ModelViewSet
 from django.db.models import QuerySet
 
 from app.api.permissions import IsCompanyOwner, IsCompanyOwnerOrReadOnly
-from companies.api.filters import MaterialDataFilterForm
 from companies.api.serializers import (
     EmployeeSerializer,
     MaterialsStatisticSerializer,
@@ -17,7 +16,7 @@ from companies.api.serializers import (
     PointSerializer,
 )
 from companies.models import Material, Point
-from companies.services import EmployeeCreator
+from companies.services import EmployeeCreator, QueryParamsValidatorService
 
 
 @extend_schema(tags=["points"])
@@ -47,10 +46,9 @@ class MaterialsStatisticViewSet(ModelViewSet):
     http_method_names = ["get"]
     serializer_class = MaterialsStatisticSerializer
     permission_classes = [IsCompanyOwner]
-    filter_form = MaterialDataFilterForm
 
     def get_queryset(self) -> QuerySet[Material]:
-        self.filter_form(self.request.GET).is_valid(self.request.query_params)
+        QueryParamsValidatorService(self.request)()
         return Material.objects.statistic(
             self.kwargs["point_pk"],
             self.request.query_params.get("date_from"),
