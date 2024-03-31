@@ -1,7 +1,11 @@
+from datetime import timedelta
+from typing import Self
+
 from django.contrib.postgres.expressions import ArraySubquery
 from django.db import models
 from django.db.models import F, OuterRef, Q, QuerySet, Sum
 from django.db.models.functions import JSONObject, TruncDate
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from app.models import DefaultModel
@@ -22,17 +26,13 @@ class MaterialType(DefaultModel):
 
 
 class MaterialQuerySet(QuerySet):
-    def statistic(self, company_id: int, point_id: int, query_params: dict) -> "MaterialQuerySet":
-        date_from = query_params.get("date_from")
-        date_to = query_params.get("date_to")
-        q_date_from = Q(date__gte=date_from) if date_from else Q()
-        q_date_to = Q(date__lte=date_to) if date_to else Q()
+    def statistic(self, point_id: int, date_from: str | None = None, date_to: str | None = None) -> Self:
+        now = timezone.now().date()
+        q_date_from = Q(date__gte=date_from) if date_from else Q(date__gte=(now - timedelta(days=30)))
+        q_date_to = Q(date__lte=date_to) if date_to else Q(date__lte=now)
         stock_queryset = (
             StockMaterial.objects.select_related("stock__date")
-            .filter(
-                stock__point__company__id=company_id,
-                stock__point__id=point_id,
-            )
+            .filter(stock__point__id=point_id)
             .annotate(date=F("stock__date"))
             .filter(q_date_from & q_date_to)
         )
@@ -51,7 +51,7 @@ class MaterialQuerySet(QuerySet):
         )
         usage_queryset = (
             UsedMaterial.objects
-            .point(company_id, point_id)
+            .filter(material__stock__point_id=point_id)
             .select_related("material__material_id")
             .annotate(date=TruncDate("modified"))
             .filter(q_date_from & q_date_to)

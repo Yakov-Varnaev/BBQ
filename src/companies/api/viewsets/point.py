@@ -52,7 +52,7 @@ class MaterialsStatisticViewSet(ModelViewSet):
     def get_queryset(self) -> QuerySet[Material]:
         self.filter_form(self.request.GET).is_valid(self.request.query_params)
         return Material.objects.statistic(
-            self.kwargs["company_pk"],
             self.kwargs["point_pk"],
-            self.request.query_params,
+            self.request.query_params.get("date_from"),
+            self.request.query_params.get("date_to"),
         )
