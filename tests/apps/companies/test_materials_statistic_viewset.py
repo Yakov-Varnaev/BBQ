@@ -2,19 +2,24 @@ import pytest
 from datetime import datetime
 
 from freezegun import freeze_time
+from pytest_lazyfixture import lazy_fixture as lf
 from rest_framework import status
 
 from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils import timezone
 
-from app.testing import StatusApiClient
+from app.testing import ApiClient, StatusApiClient
 from app.types import RestPageAssertion
 from companies.api.serializers import MaterialsStatisticSerializer
 from companies.models import Material, Point, StockMaterial
 from purchases.models import UsedMaterial
 
 pytestmark = [pytest.mark.django_db]
+
+
+def get_date(date: str) -> datetime:
+    return datetime.strptime(date, "%Y-%m-%d")
 
 
 def test_point_non_managing_staff_cannot_read_materials_statistic(
@@ -137,9 +142,6 @@ def test_materials_statistic_usage_and_stocks_filter_by_date(
     point_with_materials_statistic: Point,
     material_date_query_params: dict[str, str],
 ):
-    def get_date(date: str) -> datetime:
-        return datetime.strptime(date, "%Y-%m-%d")
-
     params = material_date_query_params
     material = Material.objects.statistic(point_with_materials_statistic.id, **params).first()  # type: ignore[attr-defined]
 
@@ -222,3 +224,68 @@ def test_materials_statistic_usage_amount(
     new_response = as_point_managing_staff.get(url, data=material_date_query_params)  # type: ignore[no-untyped-call]
 
     assert int(response["usage"][0]["amount"]) - used_material.amount == int(new_response["usage"][0]["amount"])
+
+
+@freeze_time("2000-01-31")
+def test_materials_statistic_without_parameters(point_with_materials_statistic_30_days: Point):
+    response = ApiClient(point_with_materials_statistic_30_days.company.owner).get(  # type: ignore[no-untyped-call]
+        reverse(
+            "api_v1:companies:materials-statistic-list",
+            kwargs={
+                "company_pk": point_with_materials_statistic_30_days.company.id,
+                "point_pk": point_with_materials_statistic_30_days.id,
+            },
+        )
+    )
+    for material in response["results"]:
+        for movement in [material["stocks"], material["usage"]]:
+            assert all(get_date("2000-01-01") <= get_date(elem["date"]) <= get_date("2001-01-31") for elem in movement)
+
+
+@pytest.mark.parametrize(
+    "another_point",
+    [
+        lf("point_without_materials_statistic"),
+        lf("point_with_materials_statistic_the_same_period"),
+        lf("point_with_materials_statistic_30_days"),
+    ],
+)
+def test_materials_statistic_different_results_for_each_point(
+    as_point_managing_staff: StatusApiClient,
+    point_with_materials_statistic: Point,
+    another_point: Point,
+    material_date_query_params: dict[str, str],
+):
+    point_response = as_point_managing_staff.get(  # type: ignore[no-untyped-call]
+        reverse(
+            "api_v1:companies:materials-statistic-list",
+            kwargs={
+                "company_pk": point_with_materials_statistic.company.id,
+                "point_pk": point_with_materials_statistic.id,
+            },
+        ),
+        data=material_date_query_params,
+    )
+    point_materials_statistic: QuerySet[Material] = Material.objects.statistic(
+        point_with_materials_statistic.id, **material_date_query_params
+    )
+
+    another_point_response = ApiClient(another_point.company.owner).get(  # type: ignore[no-untyped-call]
+        reverse(
+            "api_v1:companies:materials-statistic-list",
+            kwargs={
+                "company_pk": another_point.company.id,
+                "point_pk": another_point.id,
+            },
+        ),
+        data=material_date_query_params,
+    )
+    another_point_materials_statistic: QuerySet[Material] = Material.objects.statistic(
+        another_point.id, **material_date_query_params
+    )
+
+    assert list(point_materials_statistic) != list(another_point_materials_statistic)
+
+    for point_materials, another_point_materials in zip(point_response["results"], another_point_response["results"]):
+        assert point_materials["stocks"] != another_point_materials["stocks"]
+        assert point_materials["usage"] != another_point_materials["usage"]

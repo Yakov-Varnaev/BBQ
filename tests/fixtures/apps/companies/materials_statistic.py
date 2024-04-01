@@ -1,5 +1,5 @@
 import pytest
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from freezegun import freeze_time
 
@@ -25,13 +25,15 @@ def invalide_material_date_query_params(request: pytest.FixtureRequest) -> dict[
     return request.param
 
 
-@pytest.fixture
-@freeze_time("2000-01-01 10:23:40")
-def point_with_materials_statistic(factory: FixtureFactory, procedure: Procedure) -> Point:
-    now = timezone.now()
-    point = procedure.department.point
+def create_point_with_materials_statistic(
+    factory: FixtureFactory,
+    procedure: Procedure,
+    now: datetime,
+    timedelta_stock_material: int,
+) -> None:
     stock_materials = []
-    for date in [now + timedelta(days=200 * i) for i in range(1, 3)]:
+    point = procedure.department.point
+    for date in [now + timedelta(days=timedelta_stock_material * i) for i in range(1, 3)]:
         stock_material = factory.stock_material(
             stock=factory.stock(point=point, date=date.date()),
         )
@@ -52,4 +54,37 @@ def point_with_materials_statistic(factory: FixtureFactory, procedure: Procedure
             )
             used_material.created = created_date
             used_material.save()
+
+
+@pytest.fixture
+@freeze_time("2000-01-01 10:23:40")
+def point_with_materials_statistic(factory: FixtureFactory, procedure: Procedure) -> Point:
+    now = timezone.now()
+    point = procedure.department.point
+    create_point_with_materials_statistic(factory, procedure, now, 200)
     return point
+
+
+@pytest.fixture
+@freeze_time("2000-01-01 10:23:40")
+def point_with_materials_statistic_the_same_period(factory: FixtureFactory) -> Point:
+    now = timezone.now()
+    procedure = factory.procedure(department=factory.department())
+    point = procedure.department.point
+    create_point_with_materials_statistic(factory, procedure, now, 200)
+    return point
+
+
+@pytest.fixture
+@freeze_time("2000-01-01 10:23:40")
+def point_with_materials_statistic_30_days(factory: FixtureFactory) -> Point:
+    now = timezone.now()
+    procedure = factory.procedure(department=factory.department())
+    point = procedure.department.point
+    create_point_with_materials_statistic(factory, procedure, now, 15)
+    return point
+
+
+@pytest.fixture
+def point_without_materials_statistic(factory: FixtureFactory):
+    return factory.company_point()
