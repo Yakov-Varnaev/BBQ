@@ -86,5 +86,5 @@ def point_with_materials_statistic_30_days(factory: FixtureFactory) -> Point:
 
 
 @pytest.fixture
-def point_without_materials_statistic(factory: FixtureFactory):
+def point_without_materials_statistic(factory: FixtureFactory) -> Point:
     return factory.company_point()
