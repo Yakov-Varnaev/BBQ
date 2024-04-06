@@ -4,7 +4,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from django.db.models import QuerySet
 
@@ -42,13 +42,12 @@ class PointViewSet(ModelViewSet):
         return Response(EmployeeSerializer(employee).data)
 
 
-class MaterialsStatisticViewSet(ModelViewSet):
-    http_method_names = ["get"]
+class MaterialsStatisticViewSet(ReadOnlyModelViewSet):
     serializer_class = MaterialsStatisticSerializer
     permission_classes = [IsCompanyOwner]
 
     def get_queryset(self) -> QuerySet[Material]:
-        DateValidatorService(self.request)()
+        DateValidatorService(self.request.query_params)()
         return Material.objects.statistic(
             self.kwargs["point_pk"],
             self.request.query_params.get("date_from"),

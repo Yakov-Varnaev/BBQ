@@ -28,13 +28,12 @@ class MaterialType(DefaultModel):
 class MaterialQuerySet(QuerySet):
     def statistic(self, point_id: int, date_from: str | None = None, date_to: str | None = None) -> Self:
         now = timezone.now().date()
-        q_date_from = Q(date__gte=date_from) if date_from else Q(date__gte=(now - timedelta(days=30)))
-        q_date_to = Q(date__lte=date_to) if date_to else Q(date__lte=now)
+        date_filter = Q(date__gte=date_from or (now - timedelta(days=30))) & Q(date__lte=date_to or now)
         stock_queryset = (
             StockMaterial.objects.select_related("stock__date")
             .filter(stock__point__id=point_id)
             .annotate(date=F("stock__date"))
-            .filter(q_date_from & q_date_to)
+            .filter(date_filter)
         )
         stocks = (
             stock_queryset.filter(material_id=OuterRef("id"))
@@ -54,7 +53,7 @@ class MaterialQuerySet(QuerySet):
             .filter(material__stock__point_id=point_id)
             .select_related("material__material_id")
             .annotate(date=TruncDate("modified"))
-            .filter(q_date_from & q_date_to)
+            .filter(date_filter)
         )
         usage = (
             usage_queryset.filter(material__material_id=OuterRef("id"))
