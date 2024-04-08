@@ -39,6 +39,7 @@ from tests.fixtures.apps.companies.materials_statistic import (
     point_with_materials_statistic_30_days,
     point_with_materials_statistic_the_same_period,
     point_without_materials_statistic,
+    quantity_materials_in_stocks,
 )
 from tests.fixtures.apps.companies.point import company_point, company_point_data, company_point_pk
 from tests.fixtures.apps.companies.stock import (
@@ -94,4 +95,5 @@ __all__ = [
     "stock",
     "stock_data",
     "stock_material",
+    "quantity_materials_in_stocks",
 ]

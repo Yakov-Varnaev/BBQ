@@ -136,6 +136,7 @@ def test_materials_statistic_usage_and_stocks_sort_by_date(
         ),
         data=material_date_query_params,
     )
+
     for movement in [response["stocks"], response["usage"]]:
         assert all(elem1["date"] < elem2["date"] for elem1, elem2 in zip(movement, movement[1:]))
 
@@ -258,6 +259,7 @@ def test_materials_statistic_different_results_for_each_point(
     point_with_materials_statistic: Point,
     another_point: Point,
     material_date_query_params: dict[str, str],
+    quantity_materials_in_stocks: dict[Point, dict[str, int]],
 ):
     point_response = as_point_managing_staff.get(  # type: ignore[no-untyped-call]
         reverse(
@@ -268,9 +270,6 @@ def test_materials_statistic_different_results_for_each_point(
             },
         ),
         data=material_date_query_params,
-    )
-    point_materials_statistic: QuerySet[Material] = Material.objects.statistic(
-        point_with_materials_statistic.id, **material_date_query_params
     )
 
     another_point_response = ApiClient(another_point.company.owner).get(  # type: ignore[no-untyped-call]
@@ -283,12 +282,9 @@ def test_materials_statistic_different_results_for_each_point(
         ),
         data=material_date_query_params,
     )
-    another_point_materials_statistic: QuerySet[Material] = Material.objects.statistic(
-        another_point.id, **material_date_query_params
-    )
-
-    assert list(point_materials_statistic) != list(another_point_materials_statistic)
 
     for point_materials, another_point_materials in zip(point_response["results"], another_point_response["results"]):
-        assert point_materials["stocks"] != another_point_materials["stocks"]
-        assert point_materials["usage"] != another_point_materials["usage"]
+        assert len(point_materials["stocks"]) == quantity_materials_in_stocks[point_with_materials_statistic]["stocks"]
+        assert len(point_materials["usage"]) == quantity_materials_in_stocks[point_with_materials_statistic]["usage"]
+        assert len(another_point_materials["stocks"]) == quantity_materials_in_stocks[another_point]["stocks"]
+        assert len(another_point_materials["usage"]) == quantity_materials_in_stocks[another_point]["usage"]
