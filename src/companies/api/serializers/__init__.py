@@ -18,7 +18,7 @@ from companies.api.serializers.employee import (
     MasterProcedureReadSerializer,
     MasterProcedureWriteSerializer,
 )
-from companies.api.serializers.point import PointCreateSerializer, PointSerializer
+from companies.api.serializers.point import MaterialsStatisticSerializer, PointCreateSerializer, PointSerializer
 from companies.api.serializers.stock import (
     MaterialSerializer,
     MaterialTypeSerializer,
@@ -45,6 +45,7 @@ __all__ = [
     "MasterProcedureReadSerializer",
     "MasterProcedureWriteSerializer",
     "MaterialSerializer",
+    "MaterialsStatisticSerializer",
     "MaterialTypeSerializer",
     "PointSerializer",
     "PointCreateSerializer",

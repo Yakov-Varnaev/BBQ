@@ -4,12 +4,19 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from app.api.permissions import IsCompanyOwnerOrReadOnly
-from companies.api.serializers import EmployeeSerializer, PointCreateSerializer, PointSerializer
-from companies.models import Point
-from companies.services import EmployeeCreator
+from django.db.models import QuerySet
+
+from app.api.permissions import IsCompanyOwner, IsCompanyOwnerOrReadOnly
+from companies.api.serializers import (
+    EmployeeSerializer,
+    MaterialsStatisticSerializer,
+    PointCreateSerializer,
+    PointSerializer,
+)
+from companies.models import Material, Point
+from companies.services import DateValidatorService, EmployeeCreator
 
 
 @extend_schema(tags=["points"])
@@ -33,3 +40,16 @@ class PointViewSet(ModelViewSet):
         serializer = EmployeeSerializer(data=self.request.data, context=self.get_serializer_context(*args, **kwargs))
         employee = EmployeeCreator(serializer)()
         return Response(EmployeeSerializer(employee).data)
+
+
+class MaterialsStatisticViewSet(ReadOnlyModelViewSet):
+    serializer_class = MaterialsStatisticSerializer
+    permission_classes = [IsCompanyOwner]
+
+    def get_queryset(self) -> QuerySet[Material]:
+        DateValidatorService(self.request.query_params)()
+        return Material.objects.statistic(
+            self.kwargs["point_pk"],
+            self.request.query_params.get("date_from"),
+            self.request.query_params.get("date_to"),
+        )
